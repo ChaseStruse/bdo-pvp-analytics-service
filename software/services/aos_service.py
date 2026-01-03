@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from ..repositories.aos_repository import get_match_data_by_id, insert_match_data
+from ..repositories.aos_repository import get_match_data_by_id, insert_match_data, get_matches_data_by_adventurer_name
 from ..models.aos_request import Match, PlayerStats
 
 def convert_req_body_to_model(req_body):
@@ -35,6 +35,9 @@ def convert_req_body_to_model(req_body):
 def get_match_by_id(match_id):
 	match_id_uuid = uuid.UUID(match_id)
 	return get_match_data_by_id(match_id=match_id_uuid)
+
+def get_matches_by_adventurer_name_service(adventurer_name):
+	return get_matches_data_by_adventurer_name(adventurer_name=adventurer_name)
 
 def insert_match(req_body):
 	match = convert_req_body_to_model(req_body=req_body)

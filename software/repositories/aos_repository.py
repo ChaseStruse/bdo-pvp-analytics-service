@@ -26,6 +26,27 @@ def get_match_data_by_id(match_id):
 	finally:
 		session.close()
 
+
+def get_matches_data_by_adventurer_name(adventurer_name: str):
+	load_dotenv()
+	engine = create_engine(os.getenv("DB_URL") or "")
+	Session = sessionmaker(bind=engine)
+	session = Session()
+
+	try:
+		# Use ilike for case-insensitive matching and return all matches
+		matches = session.query(Match).filter(Match.adventurer_name.ilike(adventurer_name)).all()
+		if not matches:
+			return []
+		# Attach player stats for each match
+		for match in matches:
+			player_stats = session.query(PlayerStats).filter(PlayerStats.match_id == match.id).all()
+			match.player_stats = player_stats
+		return matches
+	finally:
+		session.close()
+
+
 def insert_match_data(match_data):
 	load_dotenv()
 	engine = create_engine(os.getenv("DB_URL") or "")
