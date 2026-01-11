@@ -1,5 +1,5 @@
 from .aos_service import get_matches_by_adventurer_name_service
-
+from ..models.adventurer_stats import AdventurerStats
 def calculate_adventurer_stats(current_adventurer_stats, stats):
 	current_adventurer_stats["avgKills"] += stats.kills
 	current_adventurer_stats["avgDeaths"] += stats.deaths
@@ -26,32 +26,20 @@ def calculate_averages(adventurers_stats, matches_played):
 def get_adventurer_aos_details(adventurer_name: str):
 	matches = get_matches_by_adventurer_name_service(adventurer_name=adventurer_name)
 
-	adventurers_stats = {
-		"avgKills": 0.0,
-		"avgDeaths": 0.0,
-		"avgCC": 0.0,
-		"avgDealt": 0.0,
-		"avgTaken": 0.0,
-		"avgHealed": 0.0,
-		"totalMvps": 0,
-		"totalAces": 0,
-		"winLossRatio": 0.0,
-		"totalWins": 0,
-		"totalLosses": 0,
-	}
+	adventurers_stats = AdventurerStats()
 	classes_that_bested_you = {}
 	for match in matches:
 		for player in match.player_stats:
 			if player.adventurer_name == match.adventurer_name:
-				adventurers_stats = calculate_adventurer_stats(current_adventurer_stats=adventurers_stats, stats=player)
+				adventurers_stats.calculate_adventurer_stats(stats=player)
 				if match.allied_team_win == True: # pyright: ignore[reportGeneralTypeIssues]
 					if player.mvp_ace == "MVP":
-						adventurers_stats["totalMvps"] += 1
-					adventurers_stats["totalWins"] += 1
+						adventurers_stats.total_mvps += 1
+					adventurers_stats.total_wins += 1
 				else:
 					if player.mvp_ace == "ACE":
-						adventurers_stats["totalAces"] += 1
-					adventurers_stats["totalLosses"] += 1
+						adventurers_stats.total_aces += 1
+					adventurers_stats.total_losses += 1
 
 			elif player.team == "enemy":
 				if match.allied_team_win == False: # pyright: ignore[reportGeneralTypeIssues]
@@ -67,8 +55,7 @@ def get_adventurer_aos_details(adventurer_name: str):
 
 	print("TOTALS PRIOR TO AVERAGES")
 	print(adventurers_stats)
-	adventurers_stats = calculate_averages(adventurers_stats=adventurers_stats, matches_played=len(matches))
-
-	adventurers_stats["classesThatBestedYou"] = classes_that_bested_you
-	return adventurers_stats
+	adventurers_stats.calculate_averages(matches_played=len(matches))
+	adventurers_stats.classes_that_bested_you = classes_that_bested_you
+	return adventurers_stats.convert_to_json()
 
